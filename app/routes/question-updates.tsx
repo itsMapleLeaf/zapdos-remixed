@@ -2,7 +2,7 @@ import type { Question } from "@prisma/client"
 import type { LoaderArgs } from "@remix-run/node"
 import type { SupabaseRealtimePayload } from "@supabase/supabase-js"
 import { createClient } from "@supabase/supabase-js"
-import { db } from "~/db.server"
+import { authenticator } from "~/auth.server"
 import { env } from "~/env.server"
 import { eventStream } from "~/helpers/event-stream"
 
@@ -12,14 +12,12 @@ type QuestionEvent = {
   new: Question
 }
 
-export async function loader({ request, params }: LoaderArgs) {
-  const streamer = await db.streamer.findUnique({
-    where: { id: params.streamerId },
-  })
+export async function loader({ request }: LoaderArgs) {
+  const streamer = await authenticator.isAuthenticated(request)
   if (!streamer) {
     throw new Response(undefined, {
-      status: 404,
-      statusText: "Couldn't find that streamer",
+      status: 401,
+      statusText: "Not logged in",
     })
   }
 

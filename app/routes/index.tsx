@@ -5,7 +5,7 @@ import { useState } from "react"
 import { authenticator } from "~/auth.server"
 import { db } from "~/db.server"
 import { useEventStream } from "~/helpers/event-stream"
-import type { questionLoader } from "./streamer.$streamerId/questions"
+import type { questionLoader } from "./question-updates"
 
 export async function loader({ request }: LoaderArgs) {
   const origin = new URL(request.url).origin
@@ -68,10 +68,7 @@ export default function Index() {
         </nav>
       </header>
       <main>
-        <LiveQuestionList
-          initialQuestions={data.questions}
-          streamerId={data.streamer.id}
-        />
+        <LiveQuestionList initialQuestions={data.questions} />
       </main>
     </>
   )
@@ -94,19 +91,15 @@ function CopyButton(props: { text: string; label: string }) {
 }
 
 function LiveQuestionList(props: {
-  streamerId: string
   initialQuestions: Array<{ id: string; text: string }>
 }) {
   const [questions, setQuestions] = useState(props.initialQuestions)
 
-  useEventStream<typeof questionLoader>(
-    `/streamer/${props.streamerId}/questions`,
-    (message) => {
-      if (message.eventType === "INSERT") {
-        setQuestions((questions) => [...questions, message.new])
-      }
-    },
-  )
+  useEventStream<typeof questionLoader>(`/question-updates`, (message) => {
+    if (message.eventType === "INSERT") {
+      setQuestions((questions) => [...questions, message.new])
+    }
+  })
 
   return (
     <ul>
