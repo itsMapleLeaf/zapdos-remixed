@@ -13,6 +13,7 @@ const sessionStorage = createCookieSessionStorage({
     httpOnly: true,
     secrets: [env.COOKIE_SECRET],
     secure: process.env.NODE_ENV === "production",
+    maxAge: 60 * 60 * 24 * 365,
   },
 })
 
@@ -26,14 +27,18 @@ authenticator.use(
       callbackURL: env.TWITCH_CALLBACK_URL,
     },
     async ({ accessToken, extraParams, profile }) => {
-      return (
-        (await db.streamer.findUnique({
-          where: { twitchId: profile.id },
-        })) ||
-        (await db.streamer.create({
-          data: { twitchId: profile.id, displayName: profile.display_name },
-        }))
-      )
+      return db.streamer.upsert({
+        where: {
+          twitchId: profile.id,
+        },
+        update: {
+          displayName: profile.display_name,
+        },
+        create: {
+          twitchId: profile.id,
+          displayName: profile.display_name,
+        },
+      })
     },
   ),
 )
