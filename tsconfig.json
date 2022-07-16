@@ -1,5 +1,12 @@
 {
   "extends": "@itsmapleleaf/configs/tsconfig.base",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["app/*"]
+    }
+  },
   "include": [
     "**/*.ts",
     "**/*.tsx",
