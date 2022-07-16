@@ -1,9 +1,20 @@
 import { TwitchStrategy } from "@03gibbss/remix-auth-twitch"
 import type { Streamer } from "@prisma/client"
+import { createCookieSessionStorage } from "@remix-run/node"
 import { Authenticator } from "remix-auth"
-import { db } from "../db.server"
-import { env } from "../env.server"
-import { sessionStorage } from "./session.server"
+import { db } from "./db.server"
+import { env } from "./env.server"
+
+const sessionStorage = createCookieSessionStorage({
+  cookie: {
+    name: "session",
+    sameSite: "lax",
+    path: "/",
+    httpOnly: true,
+    secrets: [env.COOKIE_SECRET],
+    secure: process.env.NODE_ENV === "production",
+  },
+})
 
 export const authenticator = new Authenticator<Streamer>(sessionStorage)
 
