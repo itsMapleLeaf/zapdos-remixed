@@ -1,5 +1,5 @@
-import type { LinksFunction, LoaderArgs, MetaFunction } from "@remix-run/node";
-import { json } from "@remix-run/node";
+import type { LinksFunction, LoaderArgs, MetaFunction } from "@remix-run/node"
+import { json } from "@remix-run/node"
 import {
   Links,
   LiveReload,
@@ -7,22 +7,23 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
-} from "@remix-run/react";
+} from "@remix-run/react"
 
-import tailwindStylesheetUrl from "./styles/tailwind.css";
+import tailwindStylesheetUrl from "./styles/tailwind.css"
 
 export const links: LinksFunction = () => {
-  return [{ rel: "stylesheet", href: tailwindStylesheetUrl }];
-};
+  return [{ rel: "stylesheet", href: tailwindStylesheetUrl }]
+}
 
 export const meta: MetaFunction = () => ({
+  // eslint-disable-next-line unicorn/text-encoding-identifier-case
   charset: "utf-8",
   title: "zapdos (remixed)",
   viewport: "width=device-width,initial-scale=1",
-});
+})
 
 export async function loader({ request }: LoaderArgs) {
-  return json({});
+  return json({})
 }
 
 export default function App() {
@@ -39,5 +40,5 @@ export default function App() {
         <LiveReload />
       </body>
     </html>
-  );
+  )
 }
