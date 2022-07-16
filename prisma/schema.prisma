@@ -11,7 +11,15 @@ datasource db {
 }
 
 model Streamer {
-  id          String @id @default(cuid())
-  twitchId    String @unique
+  id          String     @id @default(cuid())
+  twitchId    String     @unique
   displayName String
+  questions   Question[]
+}
+
+model Question {
+  id         String   @id @default(cuid())
+  streamer   Streamer @relation(fields: [streamerId], references: [id])
+  streamerId String
+  text       String
 }
