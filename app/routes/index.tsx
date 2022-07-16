@@ -18,7 +18,8 @@ export async function loader({ request }: LoaderArgs) {
 
   return json({
     streamer: {
-      name: streamer.displayName,
+      id: streamer.id,
+      displayName: streamer.displayName,
     },
     questions: questions.map((question) => ({
       id: question.id,
@@ -29,30 +30,47 @@ export async function loader({ request }: LoaderArgs) {
 
 export default function Index() {
   const data = useLoaderData<typeof loader>()
-  return (
-    <main>
+  return "streamer" in data ? (
+    <>
       <header>
         <h1>zapdos remixed</h1>
-        {"streamer" in data ? (
-          <>
-            <p>hi there, {data.streamer.name}!</p>
-            <Form method="post" action="/auth/logout">
-              <button type="submit">Sign out</button>
-            </Form>
-            <ul>
-              {data.questions.map((question) => (
-                <li key={question.id}>
-                  <p>{question.text}</p>
-                </li>
-              ))}
-            </ul>
-          </>
-        ) : (
-          <Form method="post" action="/auth/twitch/login">
-            <button type="submit">Sign in with Twitch</button>
+        <p>hi there, {data.streamer.displayName}!</p>
+        <nav>
+          <button
+            type="button"
+            onClick={() => {
+              navigator.clipboard
+                .writeText(`${location.origin}/${data.streamer.id}/ask`)
+                .catch((error) => {
+                  alert("Copy to clipboard failed")
+                  console.error(error)
+                })
+            }}
+          >
+            Copy ask link
+          </button>
+
+          <Form method="post" action="/auth/logout">
+            <button type="submit">Sign out</button>
           </Form>
-        )}
+        </nav>
       </header>
-    </main>
+      <main>
+        <ul>
+          {data.questions.map((question) => (
+            <li key={question.id}>
+              <p>{question.text}</p>
+            </li>
+          ))}
+        </ul>
+      </main>
+    </>
+  ) : (
+    <header>
+      <h1>zapdos remixed</h1>
+      <Form method="post" action="/auth/twitch/login">
+        <button type="submit">Sign in with Twitch</button>
+      </Form>
+    </header>
   )
 }
