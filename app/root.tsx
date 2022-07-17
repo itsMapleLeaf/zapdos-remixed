@@ -7,7 +7,12 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useCatch,
 } from "@remix-run/react"
+import type {
+  CatchBoundaryComponent,
+  ErrorBoundaryComponent,
+} from "@remix-run/server-runtime/dist/routeModules"
 
 import tailwindStylesheetUrl from "./styles/tailwind.css"
 
@@ -26,19 +31,63 @@ export async function loader({ request }: LoaderArgs) {
   return json({})
 }
 
-export default function App() {
+function Document({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="h-full">
       <head>
         <Meta />
         <Links />
       </head>
-      <body className="h-full">
-        <Outlet />
+      <body>
+        {children}
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
       </body>
     </html>
+  )
+}
+
+export default function App() {
+  return (
+    <Document>
+      <Outlet />
+    </Document>
+  )
+}
+
+export const ErrorBoundary: ErrorBoundaryComponent = (props) => {
+  if (typeof window === "undefined") {
+    console.error(props.error)
+  }
+
+  return (
+    <Document>
+      <h1>oops! something went wrong</h1>
+      <p>
+        <a href="/">back to safety</a>
+      </p>
+    </Document>
+  )
+}
+
+export const CatchBoundary: CatchBoundaryComponent = () => {
+  const response = useCatch()
+
+  if (typeof window === "undefined") {
+    console.error(
+      response.status,
+      response.statusText,
+      response.data?.message || response.data,
+    )
+  }
+
+  return (
+    <Document>
+      <h1>oops! something went wrong</h1>
+      <p>
+        <a href="/">back to safety</a>
+      </p>
+    </Document>
   )
 }
