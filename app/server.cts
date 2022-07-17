@@ -1,3 +1,4 @@
+// @ts-check
 /* eslint-disable unicorn/prefer-module */
 import * as serverBuild from "@remix-run/dev/server-build"
 import { createRequestHandler } from "@remix-run/express"
@@ -5,6 +6,8 @@ import type { ServerBuild } from "@remix-run/server-runtime"
 import compression from "compression"
 import express from "express"
 import morgan from "morgan"
+import type { LoadContext } from "./modules/core/load-context"
+import { createSocketServer } from "./modules/socket/socket-server"
 
 const app = express()
 
@@ -48,35 +51,16 @@ app.use(morgan("tiny"))
 
 app.all(
   "*",
-  process.env.NODE_ENV === "development"
-    ? (req, res, next) => {
-        // purgeRequireCache()
-
-        return createRequestHandler({
-          build: serverBuild as ServerBuild,
-          mode: process.env.NODE_ENV,
-        })(req, res, next)
-      }
-    : createRequestHandler({
-        build: serverBuild as ServerBuild,
-        mode: process.env.NODE_ENV,
-      }),
+  createRequestHandler({
+    build: serverBuild as ServerBuild,
+    mode: process.env.NODE_ENV,
+    getLoadContext: (): LoadContext => ({ socketServer }),
+  }),
 )
 const port = process.env.PORT || 3000
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.info(`Express server listening on http://localhost:${port}`)
 })
 
-// function purgeRequireCache() {
-//   // purge require cache on requests for "server side HMR" this won't let
-//   // you have in-memory objects between requests in development,
-//   // alternatively you can set up nodemon/pm2-dev to restart the server on
-//   // file changes, but then you'll have to reconnect to databases/etc on each
-//   // change. We prefer the DX of this, so we've included it for you by default
-//   for (const key in require.cache) {
-//     if (key.startsWith(BUILD_DIR)) {
-//       delete require.cache[key]
-//     }
-//   }
-// }
+const socketServer = createSocketServer(server)
