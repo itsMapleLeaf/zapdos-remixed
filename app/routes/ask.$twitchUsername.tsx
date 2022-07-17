@@ -1,6 +1,6 @@
 /* eslint-disable unicorn/filename-case */
 import { ChatIcon } from "@heroicons/react/solid"
-import type { ActionArgs, LoaderArgs } from "@remix-run/node"
+import type { LoaderArgs } from "@remix-run/node"
 import { json } from "@remix-run/node"
 import type { ShouldReloadFunction } from "@remix-run/react"
 import {
@@ -12,6 +12,8 @@ import {
 import { useEffect, useRef } from "react"
 import { z } from "zod"
 import { db } from "~/modules/core/db.server"
+import type { CustomDataFunctionArgs } from "~/modules/core/load-context"
+import { createClientQuestion } from "~/modules/questions/client-questions.server"
 import {
   buttonClass,
   buttonIconClass,
@@ -34,7 +36,7 @@ export async function loader({ params }: LoaderArgs) {
 
 export const unstable_shouldReload: ShouldReloadFunction = () => false
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request, context }: CustomDataFunctionArgs) {
   const bodySchema = z.object({
     text: z
       .string()
@@ -56,9 +58,11 @@ export async function action({ request }: ActionArgs) {
     )
   }
 
-  await db.question.create({
+  const question = await db.question.create({
     data: result.data,
   })
+
+  context.socketServer.emit("questionAdded", createClientQuestion(question))
 
   // eslint-disable-next-line unicorn/no-null
   return json({ errors: null }, { status: 200 })

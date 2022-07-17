@@ -8,13 +8,12 @@ import { json } from "@remix-run/node"
 import { Form, useLoaderData } from "@remix-run/react"
 import { formatDistance, parseISO } from "date-fns"
 import { useState } from "react"
-import { useEventStream } from "~/helpers/event-stream"
 import { authenticator } from "~/modules/core/auth.server"
 import type { ClientQuestion } from "~/modules/questions/client-questions.server"
 import { loadClientQuestions } from "~/modules/questions/client-questions.server"
 import { useTimer } from "~/modules/react/use-timer"
+import { useSocketEvent } from "~/modules/socket/socket-client"
 import { buttonClass, buttonIconClass } from "~/modules/ui/styles"
-import type { questionLoader } from "./question-updates"
 
 export async function loader({ request }: LoaderArgs) {
   const origin = new URL(request.url).origin
@@ -110,10 +109,8 @@ function CopyButton(props: { text: string; label: string }) {
 function LiveQuestionList(props: { initialQuestions: ClientQuestion[] }) {
   const [questions, setQuestions] = useState(props.initialQuestions)
 
-  useEventStream<typeof questionLoader>(`/question-updates`, (message) => {
-    if (message.eventType === "INSERT") {
-      setQuestions((questions) => [message.new, ...questions])
-    }
+  useSocketEvent("questionAdded", (question) => {
+    setQuestions((questions) => [question, ...questions])
   })
 
   return (
