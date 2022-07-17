@@ -34,8 +34,22 @@ app.use(
   }),
 )
 
+app.use(
+  "/fonts/fonts.css",
+  express.static("public/fonts/fonts.css", {
+    setHeaders: (res) => {
+      res.setHeader("Cache-Control", "no-store")
+    },
+  }),
+)
+
 // http://expressjs.com/en/advanced/best-practice-security.html#at-a-minimum-disable-x-powered-by-header
 app.disable("x-powered-by")
+
+app.use(
+  "/fonts",
+  express.static("public/fonts", { immutable: true, maxAge: "1y" }),
+)
 
 // Remix fingerprints its assets so we can cache forever.
 app.use(
