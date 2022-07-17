@@ -27,7 +27,7 @@ authenticator.use(
       callbackURL: env.TWITCH_CALLBACK_URL,
     },
     async ({ accessToken, extraParams, profile }) => {
-      const data: Partial<Streamer> = {
+      const data = {
         twitchUsername: profile.login,
         twitchDisplayName: profile.display_name,
         twitchAvatar: profile.profile_image_url,
