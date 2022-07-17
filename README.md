@@ -6,3 +6,4 @@ A version of Theo's [Zapdos](https://github.com/TheoBr/zapdos) app written with 
 - [ ] Delete individual questions + action to clear all questions
 - [ ] Optionally require auth for questions
 - [ ] Presence counter (?)
+- [ ] style the login page
