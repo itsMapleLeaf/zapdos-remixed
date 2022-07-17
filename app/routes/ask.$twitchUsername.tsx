@@ -9,11 +9,12 @@ import {
   useLoaderData,
   useTransition,
 } from "@remix-run/react"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { z } from "zod"
 import { db } from "~/modules/core/db.server"
 import type { CustomDataFunctionArgs } from "~/modules/core/load-context"
 import { createClientQuestion } from "~/modules/questions/client-questions.server"
+import { getSocketClient, useSocketEvent } from "~/modules/socket/socket-client"
 import {
   buttonClass,
   buttonIconClass,
@@ -27,6 +28,7 @@ export async function loader({ params }: LoaderArgs) {
     },
     select: {
       id: true,
+      twitchUsername: true,
       twitchAvatar: true,
       twitchDisplayName: true,
     },
@@ -73,10 +75,6 @@ export default function AskPage() {
   const submitResult = useActionData<typeof action>()
 
   const inputRef = useRef<HTMLTextAreaElement>(null)
-  useEffect(() => {
-    inputRef.current?.focus()
-  }, [])
-
   const transition = useTransition()
   useEffect(() => {
     if (transition.state === "idle" && inputRef.current) {
@@ -86,6 +84,17 @@ export default function AskPage() {
       }
     }
   }, [submitResult?.errors, transition.state])
+
+  const username = streamer?.twitchUsername
+  useEffect(() => {
+    if (!username) return
+    getSocketClient().emit("joinAskRoom", username)
+  }, [username])
+
+  const [memberCount, setMemberCount] = useState(0)
+  useSocketEvent("memberCountChanged", (count) => {
+    setMemberCount(count)
+  })
 
   if (!streamer) {
     return (
@@ -108,9 +117,14 @@ export default function AskPage() {
               alt=""
               className="aspect-square w-16 rounded-full"
             />
-            <h1 className="text-center text-3xl font-light">
-              ask {streamer.twitchDisplayName} a question!
-            </h1>
+            <div>
+              <h1 className="text-center text-3xl font-light">
+                ask {streamer.twitchDisplayName} a question!
+              </h1>
+              {memberCount > 1 && (
+                <p>{memberCount - 1} other askers are connected!</p>
+              )}
+            </div>
           </div>
         </div>
       </header>
