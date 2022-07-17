@@ -27,17 +27,16 @@ authenticator.use(
       callbackURL: env.TWITCH_CALLBACK_URL,
     },
     async ({ accessToken, extraParams, profile }) => {
+      const data: Partial<Streamer> = {
+        twitchUsername: profile.login,
+        twitchDisplayName: profile.display_name,
+        twitchAvatar: profile.profile_image_url,
+      }
+
       return db.streamer.upsert({
-        where: {
-          twitchId: profile.id,
-        },
-        update: {
-          displayName: profile.display_name,
-        },
-        create: {
-          twitchId: profile.id,
-          displayName: profile.display_name,
-        },
+        where: { twitchId: profile.id },
+        update: data,
+        create: { ...data, twitchId: profile.id },
       })
     },
   ),

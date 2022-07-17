@@ -11,10 +11,12 @@ datasource db {
 }
 
 model Streamer {
-  id          String     @id @default(cuid())
-  twitchId    String     @unique
-  displayName String
-  questions   Question[]
+  id                String     @id @default(cuid())
+  twitchId          String     @unique
+  twitchUsername    String     @unique
+  twitchDisplayName String
+  twitchAvatar      String
+  questions         Question[]
 }
 
 model Question {
