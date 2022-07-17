@@ -4,6 +4,9 @@ import type { ClientQuestion } from "../questions/client-questions.server"
 
 export type ServerToClientEvents = {
   questionAdded: (question: ClientQuestion) => void
+  memberCountChanged: (memberCount: number) => void
 }
 
-export type ClientToServerEvents = {}
+export type ClientToServerEvents = {
+  joinAskRoom: (twitchUsername: string) => void
+}
