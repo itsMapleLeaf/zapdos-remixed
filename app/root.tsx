@@ -16,9 +16,10 @@ import type {
 
 import tailwindStylesheetUrl from "./styles/tailwind.css"
 
-export const links: LinksFunction = () => {
-  return [{ rel: "stylesheet", href: tailwindStylesheetUrl }]
-}
+export const links: LinksFunction = () => [
+  { rel: "stylesheet", href: tailwindStylesheetUrl },
+  { rel: "stylesheet", href: "/fonts/fonts.css" },
+]
 
 export const meta: MetaFunction = () => ({
   // eslint-disable-next-line unicorn/text-encoding-identifier-case

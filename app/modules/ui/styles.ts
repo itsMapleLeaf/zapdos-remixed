@@ -1,7 +1,7 @@
 import clsx from "clsx"
 
 export const buttonClass = clsx(
-  "shadow inline-flex gap-3 py-3 px-4 text-sm items-center font-semibold leading-tight uppercase transition rounded-md bg-base-600 hover:bg-base-700 active:translate-y-[2px] active:transition-none",
+  clsx`shadow inline-flex gap-3 py-2.5 px-4 text-sm items-center font-bold leading-none transition rounded-md bg-base-600 hover:bg-base-700 active:translate-y-[2px] active:transition-none`,
   "ring-2 ring-transparent focus:outline-none focus-visible:ring-base-500",
 )
 
