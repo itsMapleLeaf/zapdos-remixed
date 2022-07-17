@@ -21,7 +21,8 @@ model Streamer {
 
 model Question {
   id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  text       String
   streamer   Streamer @relation(fields: [streamerId], references: [id])
   streamerId String
-  text       String
 }

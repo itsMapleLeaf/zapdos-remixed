@@ -1,10 +1,19 @@
+import {
+  CheckCircleIcon,
+  ClipboardCopyIcon,
+  LogoutIcon,
+} from "@heroicons/react/solid"
 import type { LoaderArgs } from "@remix-run/node"
 import { json } from "@remix-run/node"
 import { Form, useLoaderData } from "@remix-run/react"
+import { formatDistance, parseISO } from "date-fns"
 import { useState } from "react"
 import { authenticator } from "~/auth.server"
-import { db } from "~/db.server"
 import { useEventStream } from "~/helpers/event-stream"
+import type { ClientQuestion } from "~/modules/questions/client-questions.server"
+import { loadClientQuestions } from "~/modules/questions/client-questions.server"
+import { useTimer } from "~/modules/react/use-timer"
+import { buttonClass, buttonIconClass } from "~/modules/ui/styles"
 import type { questionLoader } from "./question-updates"
 
 export async function loader({ request }: LoaderArgs) {
@@ -19,19 +28,9 @@ export async function loader({ request }: LoaderArgs) {
     })
   }
 
-  const questions = await db.question.findMany({
-    where: {
-      streamerId: streamer.id,
-    },
-    select: {
-      id: true,
-      text: true,
-    },
-  })
-
   return json({
     streamer,
-    questions,
+    questions: await loadClientQuestions(streamer.id),
     origin,
   })
 }
@@ -52,20 +51,32 @@ export default function Index() {
 
   return (
     <>
-      <header>
-        <h1>zapdos remixed</h1>
-        <p>hi there, {data.streamer.twitchDisplayName}!</p>
-        <nav>
-          <CopyButton
-            text={`${data.origin}/streamer/${data.streamer.twitchUsername}/ask`}
-            label="Copy ask URL"
+      <nav className="bg-base-800 shadow-md">
+        <div className="mx-auto flex max-w-screen-lg flex-row flex-wrap items-center gap-4 p-4">
+          <img
+            className="aspect-square w-12 rounded-full"
+            src={data.streamer.twitchAvatar}
+            alt=""
           />
-          <Form method="post" action="/auth/logout">
-            <button type="submit">Sign out</button>
-          </Form>
-        </nav>
-      </header>
-      <main>
+          <p className="text-xl font-light">
+            hi, {data.streamer.twitchDisplayName}!
+          </p>
+          <div className="flex-1" />
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <CopyButton
+              text={`${data.origin}/ask/${data.streamer.twitchUsername}`}
+              label="Copy ask URL"
+            />
+            <Form method="post" action="/auth/logout">
+              <button type="submit" className={buttonClass}>
+                <LogoutIcon className={buttonIconClass} />
+                Sign out
+              </button>
+            </Form>
+          </div>
+        </div>
+      </nav>
+      <main className="mx-auto max-w-screen-lg py-8 px-4">
         <LiveQuestionList initialQuestions={data.questions} />
       </main>
     </>
@@ -73,39 +84,55 @@ export default function Index() {
 }
 
 function CopyButton(props: { text: string; label: string }) {
+  const timer = useTimer(2000)
   return (
     <button
+      className={buttonClass}
       type="button"
       onClick={() => {
+        timer.start()
         navigator.clipboard.writeText(props.text).catch((error) => {
           alert("Copy to clipboard failed")
           console.error(error)
         })
       }}
     >
-      {props.label}
+      {timer.running ? (
+        <CheckCircleIcon className={buttonIconClass} />
+      ) : (
+        <ClipboardCopyIcon className={buttonIconClass} />
+      )}
+      {timer.running ? "Copied!" : props.label}
     </button>
   )
 }
 
-function LiveQuestionList(props: {
-  initialQuestions: Array<{ id: string; text: string }>
-}) {
+function LiveQuestionList(props: { initialQuestions: ClientQuestion[] }) {
   const [questions, setQuestions] = useState(props.initialQuestions)
 
   useEventStream<typeof questionLoader>(`/question-updates`, (message) => {
     if (message.eventType === "INSERT") {
-      setQuestions((questions) => [...questions, message.new])
+      setQuestions((questions) => [message.new, ...questions])
     }
   })
 
   return (
-    <ul>
+    <div className=" grid grid-cols-[repeat(auto-fill,minmax(16rem,1fr))] gap-4">
       {questions.map((question) => (
-        <li key={question.id}>
-          <p>{question.text}</p>
-        </li>
+        <div
+          key={question.id}
+          className="flex flex-col rounded-md bg-base-800 shadow-md"
+        >
+          <div className="bg-black/25 p-3 text-sm leading-none">
+            <p className="opacity-75">
+              {formatDistance(parseISO(question.createdAt), new Date(), {
+                addSuffix: true,
+              })}
+            </p>
+          </div>
+          <p className="whitespace-pre-line p-3">{question.text}</p>
+        </div>
       ))}
-    </ul>
+    </div>
   )
 }
