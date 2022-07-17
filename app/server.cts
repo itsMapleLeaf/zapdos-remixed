@@ -1,10 +1,10 @@
-const path = require("path")
-const express = require("express")
-const compression = require("compression")
-const morgan = require("morgan")
-const { createRequestHandler } = require("@remix-run/express")
-
-const BUILD_DIR = path.join(process.cwd(), "build")
+/* eslint-disable unicorn/prefer-module */
+import * as serverBuild from "@remix-run/dev/server-build"
+import { createRequestHandler } from "@remix-run/express"
+import type { ServerBuild } from "@remix-run/server-runtime"
+import compression from "compression"
+import express from "express"
+import morgan from "morgan"
 
 const app = express()
 
@@ -50,15 +50,15 @@ app.all(
   "*",
   process.env.NODE_ENV === "development"
     ? (req, res, next) => {
-        purgeRequireCache()
+        // purgeRequireCache()
 
         return createRequestHandler({
-          build: require(BUILD_DIR),
+          build: serverBuild as ServerBuild,
           mode: process.env.NODE_ENV,
         })(req, res, next)
       }
     : createRequestHandler({
-        build: require(BUILD_DIR),
+        build: serverBuild as ServerBuild,
         mode: process.env.NODE_ENV,
       }),
 )
@@ -68,15 +68,15 @@ app.listen(port, () => {
   console.info(`Express server listening on http://localhost:${port}`)
 })
 
-function purgeRequireCache() {
-  // purge require cache on requests for "server side HMR" this won't let
-  // you have in-memory objects between requests in development,
-  // alternatively you can set up nodemon/pm2-dev to restart the server on
-  // file changes, but then you'll have to reconnect to databases/etc on each
-  // change. We prefer the DX of this, so we've included it for you by default
-  for (const key in require.cache) {
-    if (key.startsWith(BUILD_DIR)) {
-      delete require.cache[key]
-    }
-  }
-}
+// function purgeRequireCache() {
+//   // purge require cache on requests for "server side HMR" this won't let
+//   // you have in-memory objects between requests in development,
+//   // alternatively you can set up nodemon/pm2-dev to restart the server on
+//   // file changes, but then you'll have to reconnect to databases/etc on each
+//   // change. We prefer the DX of this, so we've included it for you by default
+//   for (const key in require.cache) {
+//     if (key.startsWith(BUILD_DIR)) {
+//       delete require.cache[key]
+//     }
+//   }
+// }

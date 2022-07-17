@@ -13,6 +13,7 @@
     "**/*.js",
     "**/*.cjs",
     "**/*.mjs",
+    "**/*.cts",
     ".eslintrc.cjs"
   ],
   "exclude": [

@@ -6,4 +6,8 @@ module.exports = {
   cacheDirectory: "./node_modules/.cache/remix",
   ignoredRouteFiles: ["**/.*", "**/*.css", "**/*.test.{js,jsx,ts,tsx}"],
   devServerPort: 8002,
+  server: "app/server.cts",
+  serverBuildTarget: "node-cjs",
+  serverBuildPath: "build/index.js",
+  devServerBroadcastDelay: 500,
 }
