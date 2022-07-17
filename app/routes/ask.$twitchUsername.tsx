@@ -122,7 +122,7 @@ export default function AskPage() {
                 ask {streamer.twitchDisplayName} a question!
               </h1>
               {memberCount > 1 && (
-                <p>{memberCount - 1} other askers are connected!</p>
+                <p>there are {memberCount - 1} other viewers connected!</p>
               )}
             </div>
           </div>

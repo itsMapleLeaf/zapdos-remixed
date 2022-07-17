@@ -7,12 +7,12 @@ import type { LoaderArgs } from "@remix-run/node"
 import { json } from "@remix-run/node"
 import { Form, useLoaderData } from "@remix-run/react"
 import { formatDistance, parseISO } from "date-fns"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { authenticator } from "~/modules/core/auth.server"
 import type { ClientQuestion } from "~/modules/questions/client-questions.server"
 import { loadClientQuestions } from "~/modules/questions/client-questions.server"
 import { useTimer } from "~/modules/react/use-timer"
-import { useSocketEvent } from "~/modules/socket/socket-client"
+import { getSocketClient, useSocketEvent } from "~/modules/socket/socket-client"
 import { buttonClass, buttonIconClass } from "~/modules/ui/styles"
 
 export async function loader({ request }: LoaderArgs) {
@@ -57,9 +57,12 @@ export default function Index() {
             src={data.streamer.twitchAvatar}
             alt=""
           />
-          <p className="text-xl font-light">
-            hi, {data.streamer.twitchDisplayName}!
-          </p>
+          <div>
+            <p className="text-xl font-light leading-tight">
+              hi, {data.streamer.twitchDisplayName}!
+            </p>
+            <ViewerCount twitchUsername={data.streamer.twitchUsername} />
+          </div>
           <div className="flex-1" />
           <div className="flex flex-wrap items-center justify-center gap-4">
             <CopyButton
@@ -79,6 +82,23 @@ export default function Index() {
         <LiveQuestionList initialQuestions={data.questions} />
       </main>
     </>
+  )
+}
+
+function ViewerCount(props: { twitchUsername: string }) {
+  useEffect(() => {
+    getSocketClient().emit("initStreamer", props.twitchUsername)
+  }, [props.twitchUsername])
+
+  const [memberCount, setMemberCount] = useState(0)
+  useSocketEvent("memberCountChanged", (count) => {
+    setMemberCount(count)
+  })
+
+  return memberCount > 1 ? (
+    <p className="text-sm">there are {memberCount} viewers online!</p>
+  ) : (
+    <></>
   )
 }
 

@@ -11,8 +11,12 @@ export function createSocketServer(httpServer: http.Server): SocketServer {
   const server: SocketServer = new Server(httpServer)
 
   server.on("connection", (client) => {
-    client.on("joinAskRoom", async (twitchUsername) => {
+    client.on("joinAskRoom", (twitchUsername) => {
       void client.join(`ask:${twitchUsername}`)
+    })
+
+    client.on("initStreamer", (twitchUsername) => {
+      void client.join(`streamer:ask:${twitchUsername}`)
     })
 
     // it's very weird that socket.io doesn't remove clients from rooms on disconnect,
@@ -29,6 +33,7 @@ export function createSocketServer(httpServer: http.Server): SocketServer {
       const room = server.in(roomId)
       const sockets = await room.allSockets()
       room.emit("memberCountChanged", sockets.size)
+      server.in(`streamer:${roomId}`).emit("memberCountChanged", sockets.size)
     }
   }
 
