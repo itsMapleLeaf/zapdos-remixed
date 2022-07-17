@@ -23,17 +23,15 @@ export async function loader({ request }: LoaderArgs) {
     where: {
       streamerId: streamer.id,
     },
+    select: {
+      id: true,
+      text: true,
+    },
   })
 
   return json({
-    streamer: {
-      id: streamer.id,
-      displayName: streamer.displayName,
-    },
-    questions: questions.map((question) => ({
-      id: question.id,
-      text: question.text,
-    })),
+    streamer,
+    questions,
     origin,
   })
 }
@@ -56,10 +54,10 @@ export default function Index() {
     <>
       <header>
         <h1>zapdos remixed</h1>
-        <p>hi there, {data.streamer.displayName}!</p>
+        <p>hi there, {data.streamer.twitchDisplayName}!</p>
         <nav>
           <CopyButton
-            text={`${data.origin}/streamer/${data.streamer.id}/ask`}
+            text={`${data.origin}/streamer/${data.streamer.twitchUsername}/ask`}
             label="Copy ask URL"
           />
           <Form method="post" action="/auth/logout">

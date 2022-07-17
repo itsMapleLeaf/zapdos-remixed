@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/filename-case */
 import type { ActionArgs, LoaderArgs } from "@remix-run/node"
 import { json } from "@remix-run/node"
 import { Form, useLoaderData } from "@remix-run/react"
@@ -6,7 +7,7 @@ import { db } from "~/db.server"
 export async function loader({ params }: LoaderArgs) {
   const count = await db.streamer.count({
     where: {
-      id: params.streamerId,
+      twitchUsername: params.twitchUsername,
     },
   })
   return json({ streamerExists: count > 0 })
@@ -15,7 +16,7 @@ export async function loader({ params }: LoaderArgs) {
 export async function action({ params, request }: ActionArgs) {
   const streamer = await db.streamer.findUnique({
     where: {
-      id: params.streamerId,
+      twitchUsername: params.twitchUsername,
     },
   })
   if (!streamer) {
