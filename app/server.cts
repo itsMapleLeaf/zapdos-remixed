@@ -11,28 +11,7 @@ import { createSocketServer } from "./modules/socket/socket-server"
 
 const app = express()
 
-app.use(
-  compression({
-    filter: (_req, res) => {
-      const contentTypeHeader = res.getHeader("Content-Type")
-      let contentType = ""
-      if (contentTypeHeader) {
-        contentType = Array.isArray(contentTypeHeader)
-          ? contentTypeHeader.join(" ")
-          : String(contentTypeHeader)
-      }
-
-      if (
-        contentType.includes("text/html") ||
-        contentType.includes("text/event-stream")
-      ) {
-        return false
-      }
-
-      return true
-    },
-  }),
-)
+app.use(compression())
 
 app.use(
   "/fonts/fonts.css",
