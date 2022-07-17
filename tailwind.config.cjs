@@ -3,6 +3,9 @@ module.exports = {
   content: ["./app/**/*.{ts,tsx,jsx,js}"],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["Nunito", "sans-serif"],
+      },
       colors: {
         base: {
           50: "#f8fafa",
