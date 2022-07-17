@@ -11,7 +11,7 @@ import {
 } from "@remix-run/react"
 import { useEffect, useRef } from "react"
 import { z } from "zod"
-import { db } from "~/db.server"
+import { db } from "~/modules/core/db.server"
 import {
   buttonClass,
   buttonIconClass,

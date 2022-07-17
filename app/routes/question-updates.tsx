@@ -1,9 +1,9 @@
 import type { Question } from "@prisma/client"
 import type { LoaderArgs } from "@remix-run/node"
 import { createClient } from "@supabase/supabase-js"
-import { authenticator } from "~/auth.server"
-import { env } from "~/env.server"
 import { eventStream } from "~/helpers/event-stream"
+import { authenticator } from "~/modules/core/auth.server"
+import { env } from "~/modules/core/env.server"
 import type { ClientQuestion } from "~/modules/questions/client-questions.server"
 import { createClientQuestion } from "~/modules/questions/client-questions.server"
 

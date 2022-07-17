@@ -1,4 +1,4 @@
-import { raise } from "./helpers/errors"
+import { raise } from "../../helpers/errors"
 
 const getEnv = (key: string) =>
   process.env[key] ?? raise(`Missing environment variable ${key}`)

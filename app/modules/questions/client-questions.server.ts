@@ -1,5 +1,5 @@
 import type { Question } from "@prisma/client"
-import { db } from "~/db.server"
+import { db } from "../core/db.server"
 
 export type ClientQuestion = {
   id: string
