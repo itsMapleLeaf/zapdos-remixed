@@ -9,4 +9,5 @@ export type ServerToClientEvents = {
 
 export type ClientToServerEvents = {
   joinAskRoom: (twitchUsername: string) => void
+  initStreamer: (twitchUsername: string) => void
 }
