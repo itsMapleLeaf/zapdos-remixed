@@ -33,7 +33,7 @@ export async function loader({ request }: LoaderArgs) {
 
 function Document({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="en" className="break-words bg-base-900 text-base-50">
       <head>
         <Meta />
         <Links />

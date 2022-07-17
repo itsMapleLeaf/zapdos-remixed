@@ -1,16 +1,16 @@
 import type { Question } from "@prisma/client"
 import type { LoaderArgs } from "@remix-run/node"
-import type { SupabaseRealtimePayload } from "@supabase/supabase-js"
 import { createClient } from "@supabase/supabase-js"
 import { authenticator } from "~/auth.server"
 import { env } from "~/env.server"
 import { eventStream } from "~/helpers/event-stream"
+import type { ClientQuestion } from "~/modules/questions/client-questions.server"
+import { createClientQuestion } from "~/modules/questions/client-questions.server"
 
-type QuestionEvent = {
-  eventType: SupabaseRealtimePayload<Question>["eventType"]
-  old: Question
-  new: Question
-}
+type QuestionEvent =
+  | { eventType: "INSERT"; new: ClientQuestion }
+  | { eventType: "UPDATE"; old: ClientQuestion; new: ClientQuestion }
+  | { eventType: "DELETE"; old: ClientQuestion }
 
 export async function loader({ request }: LoaderArgs) {
   const streamer = await authenticator.isAuthenticated(request)
@@ -25,11 +25,25 @@ export async function loader({ request }: LoaderArgs) {
     const subscription = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY)
       .from<Question>(`Question:streamerId=eq.${streamer.id}`)
       .on("*", (event) => {
-        send({
-          eventType: event.eventType,
-          old: event.old,
-          new: event.new,
-        })
+        if (event.eventType === "INSERT") {
+          send({
+            eventType: event.eventType,
+            new: createClientQuestion(event.new),
+          })
+        }
+        if (event.eventType === "UPDATE") {
+          send({
+            eventType: event.eventType,
+            old: createClientQuestion(event.old),
+            new: createClientQuestion(event.new),
+          })
+        }
+        if (event.eventType === "DELETE") {
+          send({
+            eventType: event.eventType,
+            old: createClientQuestion(event.old),
+          })
+        }
       })
       .subscribe()
 

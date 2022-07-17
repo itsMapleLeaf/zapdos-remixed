@@ -1,0 +1,10 @@
+import clsx from "clsx"
+
+export const buttonClass = clsx(
+  "shadow inline-flex gap-3 py-3 px-4 text-sm items-center font-semibold leading-tight uppercase transition rounded-md bg-base-600 hover:bg-base-700 active:translate-y-[2px] active:transition-none",
+  "ring-2 ring-transparent focus:outline-none focus-visible:ring-base-500",
+)
+
+export const buttonIconClass = clsx("w-5 -mx-1 flex-shrink-0")
+
+export const containerClass = clsx("mx-auto max-w-screen-lg px-4")
