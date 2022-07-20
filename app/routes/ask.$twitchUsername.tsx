@@ -11,6 +11,8 @@ import {
 } from "@remix-run/react"
 import { useEffect, useRef, useState } from "react"
 import { z } from "zod"
+import { toError } from "~/helpers/errors"
+import { resultify } from "~/helpers/resultify"
 import { db } from "~/modules/core/db.server"
 import type { CustomDataFunctionArgs } from "~/modules/core/load-context"
 import { createClientQuestion } from "~/modules/questions/client-questions.server"
@@ -51,60 +53,71 @@ export async function action({ request, context }: CustomDataFunctionArgs) {
   )
   if (!result.success) {
     return json(
-      { errors: result.error.formErrors },
       {
-        status: 400,
-        statusText: "Invalid body",
-      },
+        state: "invalidFormBody",
+        errors: result.error.formErrors,
+      } as const,
+      { status: 400, statusText: "Invalid body" },
     )
   }
 
-  const updated = await db.streamer.update({
-    where: {
-      twitchUsername: result.data.twitchUsername,
-    },
-    data: {
-      questions: {
-        create: [{ text: result.data.text }],
+  const [updated, updateError] = await resultify(
+    db.streamer.update({
+      where: {
+        twitchUsername: result.data.twitchUsername,
       },
-    },
-    select: {
-      questions: {
-        orderBy: { createdAt: "desc" },
-        take: 1,
+      data: {
+        questions: {
+          create: [{ text: result.data.text }],
+        },
       },
-    },
-  })
+      select: {
+        questions: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+        },
+      },
+    }),
+  )
+  if (!updated) {
+    return json(
+      {
+        state: "failedToCreateQuestion",
+        error: toError(updateError).message,
+      } as const,
+      { status: 400, statusText: "Invalid body" },
+    )
+  }
 
   context.socketServer.emit(
     "questionAdded",
     createClientQuestion(updated.questions[0]!),
   )
 
-  // eslint-disable-next-line unicorn/no-null
-  return json({ errors: null }, { status: 200 })
+  return json({ state: "success" } as const, { status: 200 })
 }
 
 export default function AskPage() {
   const { streamer } = useLoaderData<typeof loader>()
+
   const submitResult = useActionData<typeof action>()
+  const isSubmitSuccess = submitResult?.state === "success"
 
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const transition = useTransition()
   useEffect(() => {
     if (transition.state === "idle" && inputRef.current) {
       inputRef.current.focus()
-      if (!submitResult?.errors) {
+      if (isSubmitSuccess) {
         inputRef.current.value = ""
       }
     }
-  }, [submitResult?.errors, transition.state])
+  }, [isSubmitSuccess, transition.state])
 
-  const username = streamer?.twitchUsername
   useEffect(() => {
-    if (!username) return
-    getSocketClient().emit("joinAskRoom", username)
-  }, [username])
+    if (!streamer?.twitchUsername) return
+    getSocketClient().emit("joinAskRoom", streamer.twitchUsername)
+  }, [streamer?.twitchUsername])
 
   const [memberCount, setMemberCount] = useState(0)
   useSocketEvent("memberCountChanged", (count) => {
@@ -153,22 +166,23 @@ export default function AskPage() {
               value={streamer.twitchUsername}
             />
 
-            {submitResult?.errors?.formErrors.map((message) => (
-              <p key={message} className="text-red-500">
-                {message}
-              </p>
-            ))}
+            {submitResult?.state === "invalidFormBody" &&
+              submitResult.errors.formErrors.map((message) => (
+                <p key={message} className="text-red-500">
+                  {message}
+                </p>
+              ))}
 
             <div>
               <textarea
                 name="text"
                 rows={5}
                 className="w-full rounded-md bg-black/25 p-4 text-inherit ring-2 ring-transparent transition focus:outline-none focus-visible:ring-base-500"
-                // required
-                // maxLength={1024}
+                required
+                maxLength={1024}
                 ref={inputRef}
               />
-              {submitResult?.errors?.fieldErrors.text && (
+              {submitResult?.state === "invalidFormBody" && (
                 <p>{submitResult.errors.fieldErrors.text}</p>
               )}
             </div>
