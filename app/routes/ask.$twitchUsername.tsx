@@ -27,7 +27,6 @@ export async function loader({ params }: LoaderArgs) {
       twitchUsername: params.twitchUsername,
     },
     select: {
-      id: true,
       twitchUsername: true,
       twitchAvatar: true,
       twitchDisplayName: true,
@@ -44,7 +43,7 @@ export async function action({ request, context }: CustomDataFunctionArgs) {
       .string()
       .min(1, "question text is required")
       .max(1024, "no more than 1024 characters!"),
-    streamerId: z.string(),
+    twitchUsername: z.string(),
   })
 
   const result = bodySchema.safeParse(
@@ -60,11 +59,27 @@ export async function action({ request, context }: CustomDataFunctionArgs) {
     )
   }
 
-  const question = await db.question.create({
-    data: result.data,
+  const updated = await db.streamer.update({
+    where: {
+      twitchUsername: result.data.twitchUsername,
+    },
+    data: {
+      questions: {
+        create: [{ text: result.data.text }],
+      },
+    },
+    select: {
+      questions: {
+        orderBy: { createdAt: "desc" },
+        take: 1,
+      },
+    },
   })
 
-  context.socketServer.emit("questionAdded", createClientQuestion(question))
+  context.socketServer.emit(
+    "questionAdded",
+    createClientQuestion(updated.questions[0]!),
+  )
 
   // eslint-disable-next-line unicorn/no-null
   return json({ errors: null }, { status: 200 })
@@ -132,7 +147,11 @@ export default function AskPage() {
       <main className={containerClass}>
         <div className="py-8">
           <Form method="post" className="flex flex-col gap-6">
-            <input type="hidden" name="streamerId" value={streamer.id} />
+            <input
+              type="hidden"
+              name="twitchUsername"
+              value={streamer.twitchUsername}
+            />
 
             {submitResult?.errors?.formErrors.map((message) => (
               <p key={message} className="text-red-500">
