@@ -11,7 +11,6 @@ import {
 } from "@remix-run/react"
 import { useEffect, useRef, useState } from "react"
 import { z } from "zod"
-import { toError } from "~/helpers/errors"
 import { resultify } from "~/helpers/resultify"
 import { db } from "~/modules/core/db.server"
 import type { CustomDataFunctionArgs } from "~/modules/core/load-context"
@@ -53,11 +52,8 @@ export async function action({ request, context }: CustomDataFunctionArgs) {
   )
   if (!result.success) {
     return json(
-      {
-        state: "invalidFormBody",
-        errors: result.error.formErrors,
-      } as const,
-      { status: 400, statusText: "Invalid body" },
+      { state: "invalidFormBody", errors: result.error.formErrors } as const,
+      400,
     )
   }
 
@@ -80,13 +76,8 @@ export async function action({ request, context }: CustomDataFunctionArgs) {
     }),
   )
   if (!updated) {
-    return json(
-      {
-        state: "failedToCreateQuestion",
-        error: toError(updateError).message,
-      } as const,
-      { status: 400, statusText: "Invalid body" },
-    )
+    console.error(updateError)
+    return json({ state: "internalError" } as const, 500)
   }
 
   context.socketServer.emit(
@@ -94,7 +85,7 @@ export async function action({ request, context }: CustomDataFunctionArgs) {
     createClientQuestion(updated.questions[0]!),
   )
 
-  return json({ state: "success" } as const, { status: 200 })
+  return json({ state: "success" } as const)
 }
 
 export default function AskPage() {
@@ -136,7 +127,7 @@ export default function AskPage() {
   }
 
   return (
-    <div>
+    <>
       <header className="bg-base-800 py-6">
         <div className={containerClass}>
           <div className="flex flex-row flex-wrap items-center justify-center gap-4">
@@ -199,7 +190,11 @@ export default function AskPage() {
             </div>
           </Form>
         </div>
+
+        {submitResult?.state === "internalError" && (
+          <p>oops, something went wrong. try again</p>
+        )}
       </main>
-    </div>
+    </>
   )
 }
