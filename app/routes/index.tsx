@@ -1,6 +1,7 @@
 import {
   CheckCircleIcon,
   ClipboardCopyIcon,
+  HeartIcon,
   LogoutIcon,
 } from "@heroicons/react/solid"
 import type { LoaderArgs } from "@remix-run/node"
@@ -13,7 +14,11 @@ import type { ClientQuestion } from "~/modules/questions/client-questions.server
 import { loadClientQuestions } from "~/modules/questions/client-questions.server"
 import { useTimer } from "~/modules/react/use-timer"
 import { getSocketClient, useSocketEvent } from "~/modules/socket/socket-client"
-import { buttonClass, buttonIconClass } from "~/modules/ui/styles"
+import {
+  buttonClass,
+  buttonIconClass,
+  containerClass,
+} from "~/modules/ui/styles"
 
 export async function loader({ request }: LoaderArgs) {
   const origin = new URL(request.url).origin
@@ -39,12 +44,27 @@ export default function Index() {
 
   if (!("streamer" in data)) {
     return (
-      <header>
-        <h1>zapdos remixed</h1>
-        <Form method="post" action="/auth/twitch/login">
-          <button type="submit">Sign in with Twitch</button>
-        </Form>
-      </header>
+      <div className="flex h-full flex-col">
+        <main className="mx-auto flex h-full max-w-screen-sm flex-1 flex-col items-center justify-center gap-4 p-4 text-center">
+          <h1 className="text-5xl font-light">zapdos</h1>
+          <p className="text-xl">
+            Zapdos is a tool for streamers to accept and display anonymous
+            questions. Live.
+          </p>
+          <Form method="post" action="/auth/twitch/login">
+            <button type="submit" className={buttonClass}>
+              <svg viewBox="0 0 24 24" className={buttonIconClass}>
+                <path
+                  fill="currentColor"
+                  d="M11.64 5.93H13.07V10.21H11.64M15.57 5.93H17V10.21H15.57M7 2L3.43 5.57V18.43H7.71V22L11.29 18.43H14.14L20.57 12V2M19.14 11.29L16.29 14.14H13.43L10.93 16.64V14.14H7.71V3.43H19.14Z"
+                />
+              </svg>
+              Sign in with Twitch
+            </button>
+          </Form>
+        </main>
+        <Footer />
+      </div>
     )
   }
 
@@ -81,7 +101,32 @@ export default function Index() {
       <main className="mx-auto max-w-screen-lg py-8 px-4">
         <LiveQuestionList initialQuestions={data.questions} />
       </main>
+      <Footer />
     </>
+  )
+}
+
+function Footer() {
+  return (
+    <footer className={containerClass}>
+      <div className="py-4 text-center opacity-70">
+        original app by Theo <div className="mx-1 inline-block">&bull;</div>{" "}
+        recreated with{" "}
+        <HeartIcon
+          className="inline-block w-5 align-text-top"
+          aria-label="love"
+        />{" "}
+        by MapleLeaf <div className="mx-1 inline-block">&bull;</div>{" "}
+        <a
+          href="https://github.com/itsMapleLeaf/zapdos-remixed"
+          target="_blank"
+          rel="noreferrer"
+          className="underline transition hover:text-base-300 hover:no-underline"
+        >
+          source
+        </a>
+      </div>
+    </footer>
   )
 }
 

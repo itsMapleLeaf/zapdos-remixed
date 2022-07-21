@@ -33,12 +33,12 @@ export async function loader({ request }: LoaderArgs) {
 
 function Document({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="break-words bg-base-900 text-base-50">
+    <html lang="en" className="h-full break-words bg-base-900 text-base-50">
       <head>
         <Meta />
         <Links />
       </head>
-      <body>
+      <body className="h-full">
         {children}
         <ScrollRestoration />
         <Scripts />
